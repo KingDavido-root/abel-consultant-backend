@@ -56,8 +56,37 @@ const validateAuth = (req, res, next) => {
   next();
 };
 
+const validateRegister = (req, res, next) => {
+  const { name, email, password } = req.body;
+  
+  if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    return res.status(400).json({ 
+      message: 'Name is required and must be a non-empty string' 
+    });
+  }
+  
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return res.status(400).json({ 
+      message: 'Valid email is required' 
+    });
+  }
+  
+  if (!password || typeof password !== 'string' || password.length < 6) {
+    return res.status(400).json({ 
+      message: 'Password is required and must be at least 6 characters' 
+    });
+  }
+  
+  // Sanitize inputs
+  req.body.name = name.trim();
+  req.body.email = email.trim().toLowerCase();
+  
+  next();
+};
+
 module.exports = {
   validateProduct,
   validateOrder,
-  validateAuth
+  validateAuth,
+  validateRegister
 };
