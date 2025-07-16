@@ -14,7 +14,7 @@ const corsOptions = {
     ? [
         'https://abel-consultant-backend.onrender.com',
         'https://abel-consultant-frontend-git-main-david-mwambas-projects.vercel.app',
-        'https://your-frontend-domain.com'
+        'https://abel-consultant-frontend.vercel.app'
       ]
     : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,

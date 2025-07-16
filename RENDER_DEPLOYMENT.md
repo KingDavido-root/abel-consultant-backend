@@ -32,7 +32,7 @@ PORT=5000
 NODE_ENV=production
 EMAIL_USER=youremail@gmail.com
 EMAIL_PASS=yourpassword
-FRONTEND_URL=https://your-frontend-domain.com
+FRONTEND_URL=https://abel-consultant-frontend-git-main-david-mwambas-projects.vercel.app
 ```
 
 ## 🔧 **Step 3: Render Service Configuration**
