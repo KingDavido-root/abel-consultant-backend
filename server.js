@@ -11,7 +11,11 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://abel-consultant-backend.onrender.com', 'https://your-frontend-domain.com']
+    ? [
+        'https://abel-consultant-backend.onrender.com',
+        'https://abel-consultant-frontend-git-main-david-mwambas-projects.vercel.app',
+        'https://your-frontend-domain.com'
+      ]
     : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
