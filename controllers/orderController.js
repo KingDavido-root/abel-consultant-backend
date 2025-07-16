@@ -1,86 +1,150 @@
 const Order = require('../models/Order');
-const User = require('../models/User');           // To get user email
-const sendEmail = require('../utils/sendEmail');  // Email helper
+const User = require('../models/User');
+const sendEmail = require('../utils/sendEmail');
 
-// Place new order
-exports.placeOrder = async (req, res) => {
+// Create new order
+exports.createOrder = async (req, res) => {
   try {
-    const { productType, productId } = req.body;
+    const { items, shippingAddress, paymentMethod, totals } = req.body;
 
-    if (!productType || !productId) {
-      return res.status(400).json({ message: 'productType and productId are required' });
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: 'No order items' });
     }
 
-    // Create order linked to logged-in user
-    const newOrder = new Order({
-      user: req.user.id,
-      productType,
-      productId
+    const order = new Order({
+      user: req.user._id,
+      items,
+      shippingAddress,
+      paymentMethod,
+      totals,
+      status: 'Processing'
     });
 
-    await newOrder.save();
-
-    // Fetch user details for email
-    const user = await User.findById(req.user.id);
-
-    // Send order confirmation email
-    await sendEmail({
-      to: user.email,
-      subject: 'Order Confirmation',
-      text: `Your order for product ${productId} has been placed!`,
-      html: `
-        <p>Hi ${user.name || ''},</p>
-        <p>Your order for <strong>${productType}</strong> (Product ID: <strong>${productId}</strong>) has been placed successfully.</p>
-        <p>Thank you for choosing Abel Consultant LLC!</p>
-      `
-    });
-
-    res.status(201).json(newOrder);
-  } catch (err) {
-    console.error('Place order error:', err);
-    res.status(500).json({ message: 'Server error' });
+    const createdOrder = await order.save();
+    res.status(201).json(createdOrder);
+  } catch (error) {
+    console.error('Order creation error:', error);
+    res.status(500).json({ message: 'Error creating order', error: error.message });
   }
 };
 
-// Get logged-in user's orders
-exports.getMyOrders = async (req, res) => {
+// Get user's orders
+exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user._id })
+      .sort({ createdAt: -1 });
     res.json(orders);
-  } catch (err) {
-    console.error('Get orders error:', err);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching orders', error: error.message });
   }
 };
 
-// Admin: update order status
-exports.updateOrderStatus = async (req, res) => {
+// Get order by ID
+exports.getOrderById = async (req, res) => {
   try {
-    const { status } = req.body;
-
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
+    const order = await Order.findById(req.params.id)
+      .populate('user', 'name email');
 
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Optionally, notify user about status change:
-    const user = await User.findById(order.user);
-    await sendEmail({
-      to: user.email,
-      subject: 'Order Status Updated',
-      text: `Your order status has been updated to: ${status}`,
-      html: `<p>Hi ${user.name || ''},</p>
-             <p>Your order status is now: <strong>${status}</strong>.</p>`
-    });
+    // Check if the user is authorized to view this order
+    if (order.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
 
     res.json(order);
-  } catch (err) {
-    console.error('Update order status error:', err);
-    res.status(500).json({ message: 'Server error' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching order', error: error.message });
+  }
+};
+
+// Admin: Update order status
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { status, trackingNumber, orderNotes } = req.body;
+
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    order.status = status || order.status;
+    order.trackingNumber = trackingNumber || order.trackingNumber;
+    order.orderNotes = orderNotes || order.orderNotes;
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating order', error: error.message });
+  }
+};
+
+// Admin: Get all orders
+exports.getAllOrders = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const orders = await Order.find({})
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching orders', error: error.message });
+  }
+};
+
+// Admin: Get order statistics
+exports.getOrderStats = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const totalOrders = await Order.countDocuments();
+    const processingOrders = await Order.countDocuments({ status: 'Processing' });
+    const shippedOrders = await Order.countDocuments({ status: 'Shipped' });
+    const deliveredOrders = await Order.countDocuments({ status: 'Delivered' });
+    const cancelledOrders = await Order.countDocuments({ status: 'Cancelled' });
+
+    const totalRevenue = await Order.aggregate([
+      { $match: { status: { $ne: 'Cancelled' } } },
+      { $group: { _id: null, total: { $sum: '$totals.total' } } }
+    ]);
+
+    const revenueByDay = await Order.aggregate([
+      {
+        $match: {
+          status: { $ne: 'Cancelled' },
+          createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          total: { $sum: '$totals.total' }
+        }
+      },
+      { $sort: { '_id': 1 } }
+    ]);
+
+    res.json({
+      totalOrders,
+      processingOrders,
+      shippedOrders,
+      deliveredOrders,
+      cancelledOrders,
+      totalRevenue: totalRevenue[0]?.total || 0,
+      revenueByDay
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching order statistics', error: error.message });
   }
 };
