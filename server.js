@@ -32,6 +32,13 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/library', require('./routes/libraryRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes')); // Admin panel routes
 
+// New feature routes
+app.use('/api/addresses', require('./routes/addressRoutes'));
+app.use('/api/payment-methods', require('./routes/paymentMethodRoutes'));
+app.use('/api/appointments', require('./routes/appointmentRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/wishlist', require('./routes/wishlistRoutes'));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
