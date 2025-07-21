@@ -8,7 +8,7 @@ const {
   addSparePart, 
   getSpareParts 
 } = require('../controllers/productController');
-const auth = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
 const role = require('../middleware/roleMiddleware');
 const { validateProduct } = require('../middleware/validation');
 
@@ -18,8 +18,8 @@ router.get('/cars', getCars);
 router.get('/spare-parts', getSpareParts);
 
 // Admin only - Add products
-router.post('/electronics', auth, role(['admin']), validateProduct, addElectronic);
-router.post('/cars', auth, role(['admin']), validateProduct, addCar);
-router.post('/spare-parts', auth, role(['admin']), validateProduct, addSparePart);
+router.post('/electronics', protect, role(['admin']), validateProduct, addElectronic);
+router.post('/cars', protect, role(['admin']), validateProduct, addCar);
+router.post('/spare-parts', protect, role(['admin']), validateProduct, addSparePart);
 
 module.exports = router;
