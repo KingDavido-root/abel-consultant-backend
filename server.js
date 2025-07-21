@@ -12,7 +12,6 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        'https://abel-consultant-backend.onrender.com',
         'https://abel-consultant-frontend-git-main-david-mwambas-projects.vercel.app',
         'https://abel-consultant-frontend.vercel.app'
       ]
