@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  console.log('Attempting to connect to MongoDB...');
+  console.log('MongoDB URI:', process.env.MONGO_URI.replace(/\/\/.+@/, '//****:****@'));
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB connected: ${conn.connection.host}`);
