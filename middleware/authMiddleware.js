@@ -7,7 +7,13 @@ exports.protect = function (req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user;  // decoded.user should contain id, role
+    console.log('Decoded token:', decoded);
+    req.user = {
+      _id: decoded.user.id,  // Make sure we have _id available
+      id: decoded.user.id,
+      role: decoded.user.role
+    };
+    console.log('Set user in request:', req.user);
     next();
   } catch (err) {
     res.status(401).json({ message: 'Token is not valid' });

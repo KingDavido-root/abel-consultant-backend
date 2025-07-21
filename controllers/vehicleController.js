@@ -13,8 +13,21 @@ exports.getUserVehicles = asyncHandler(async (req, res) => {
 // @route   POST /api/vehicles
 // @access  Private
 exports.addVehicle = asyncHandler(async (req, res) => {
+  console.log('Request headers:', req.headers);
   console.log('Request body:', req.body);
-  console.log('User:', req.user);
+  console.log('User from request:', req.user);
+  console.log('Authorization header:', req.headers.authorization);
+
+  if (!req.user) {
+    res.status(401);
+    throw new Error('User not authenticated');
+  }
+
+  if (!req.user._id) {
+    console.log('User object structure:', JSON.stringify(req.user, null, 2));
+    res.status(401);
+    throw new Error('User ID not found in token');
+  }
   const {
     make,
     model,
@@ -36,7 +49,10 @@ exports.addVehicle = asyncHandler(async (req, res) => {
     }
   }
 
-  const vehicle = await Vehicle.create({
+  // Log the user ID we're about to use
+  console.log('Creating vehicle with user ID:', req.user._id);
+
+  const vehicleData = {
     user: req.user._id,
     make,
     model,
@@ -47,7 +63,15 @@ exports.addVehicle = asyncHandler(async (req, res) => {
     mileage,
     lastService,
     notes
-  });
+  };
+
+  // Log the complete vehicle data
+  console.log('Vehicle data to be created:', vehicleData);
+
+  const vehicle = await Vehicle.create(vehicleData);
+
+  // Log the created vehicle
+  console.log('Created vehicle:', vehicle);
 
   res.status(201).json(vehicle);
 });
