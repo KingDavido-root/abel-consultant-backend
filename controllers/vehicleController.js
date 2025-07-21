@@ -13,6 +13,8 @@ exports.getUserVehicles = asyncHandler(async (req, res) => {
 // @route   POST /api/vehicles
 // @access  Private
 exports.addVehicle = asyncHandler(async (req, res) => {
+  console.log('Request body:', req.body);
+  console.log('User:', req.user);
   const {
     make,
     model,
