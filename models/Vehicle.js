@@ -20,7 +20,8 @@ const vehicleSchema = new mongoose.Schema({
   },
   vin: {
     type: String,
-    unique: true
+    unique: true,
+    sparse: true  // Makes the unique index sparse, allowing multiple null values
   },
   licensePlate: {
     type: String
