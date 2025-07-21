@@ -38,6 +38,7 @@ app.use('/api/payment-methods', require('./routes/paymentMethodRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/wishlist', require('./routes/wishlistRoutes'));
+app.use('/api/vehicles', require('./routes/vehicleRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
