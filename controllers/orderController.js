@@ -1,6 +1,22 @@
 const Order = require('../models/Order');
+const OrderHistory = require('../models/OrderHistory');
 const User = require('../models/User');
+const Cart = require('../models/Cart');
 const sendEmail = require('../utils/sendEmail');
+
+// Utility function to create order history entry
+async function createOrderHistory(order, status, note, userId, location = null, estimatedDeliveryDate = null) {
+  const history = new OrderHistory({
+    order: order._id,
+    status,
+    note,
+    updatedBy: userId,
+    location,
+    estimatedDeliveryDate
+  });
+  await history.save();
+  return history;
+}
 
 // Create new order
 exports.createOrder = async (req, res) => {
@@ -98,6 +114,37 @@ exports.getAllOrders = async (req, res) => {
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching orders', error: error.message });
+  }
+};
+
+// Cancel order
+exports.cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Check if user is authorized to cancel this order
+    if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Only allow cancellation if order is in 'Processing' status
+    if (order.status !== 'Processing') {
+      return res.status(400).json({ 
+        message: 'Order cannot be cancelled. Orders can only be cancelled while in Processing status.' 
+      });
+    }
+
+    order.status = 'Cancelled';
+    order.orderNotes = req.body.cancellationReason || 'Cancelled by user';
+
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ message: 'Error cancelling order', error: error.message });
   }
 };
 
