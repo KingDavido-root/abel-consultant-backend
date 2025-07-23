@@ -38,6 +38,8 @@ app.use('/api/appointments', require('./routes/appointmentRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/vehicles', require('./routes/vehicleRoutes'));
+app.use('/api/electronics', require('./routes/electronicsRoutes'));
+app.use('/api/spare-parts', require('./routes/sparePartsRoutes'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
