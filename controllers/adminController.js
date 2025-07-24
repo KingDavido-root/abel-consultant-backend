@@ -2,7 +2,6 @@ const User = require('../models/User');
 const Order = require('../models/Order');
 const ProductAnalytics = require('../models/ProductAnalytics');
 const mongoose = require('mongoose');
-const Order = require('../models/Order');
 const Electronic = require('../models/Electronic');
 const Car = require('../models/Car');
 const SparePart = require('../models/SparePart');

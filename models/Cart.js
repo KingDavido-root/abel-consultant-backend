@@ -60,7 +60,7 @@ const cartItemSchema = new mongoose.Schema({
   lastUpdated: { 
     type: Date, 
     default: Date.now 
-  }
+  },
   productType: { 
     type: String, 
     required: true, 

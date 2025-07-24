@@ -4,7 +4,10 @@ const {
   addItemToCart, 
   removeItemFromCart, 
   getCart, 
-  clearCart 
+  clearCart,
+  getCartSummary,
+  updateItemQuantity,
+  saveForLater
 } = require('../controllers/cartController');
 const { protect } = require('../middleware/authMiddleware');
 
